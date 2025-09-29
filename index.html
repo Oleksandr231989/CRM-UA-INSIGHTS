@@ -21,7 +21,7 @@
         }
 
         .container {
-            max-width: 700px;
+            max-width: 100%;
             width: 100%;
             flex: 1;
             display: flex;
@@ -76,13 +76,13 @@
             width: 100%;
             display: none;
             flex-direction: column;
-            min-height: 60vh;
+            min-height: calc(100vh - 160px);
         }
 
         .messages {
             flex: 1;
             margin-bottom: 30px;
-            max-height: 400px;
+            height: calc(100vh - 240px);
             overflow-y: auto;
         }
 
@@ -300,17 +300,14 @@
             </div>
             
             <div class="starter-questions">
-                <div class="question-card" onclick="selectQuestion('Key insights PED Enterol')">
-                    Pediatric Enterol insights analysis
+                <div class="question-card" onclick="selectQuestion('Otipax situation analysis')">
+                    Otipax situation analysis / Оцінка ситуації Otipax
                 </div>
-                <div class="question-card" onclick="selectQuestion('Probiotic market insights by countries')">
-                    Probiotic market insights by countries
-                </div>
-                <div class="question-card" onclick="selectQuestion('Probiotic market performance')">
-                    Probiotic market performance
+                <div class="question-card" onclick="selectQuestion('Asacol analysis')">
+                    Asacol analysis / Аналіз Asacol
                 </div>
                 <div class="question-card" onclick="selectQuestion('ENT specialist feedback analysis')">
-                    ENT specialist feedback analysis
+                    ENT specialist feedback analysis / Аналіз відгуків ЛОР-спеціалістів
                 </div>
             </div>
 
@@ -319,7 +316,7 @@
                     <textarea 
                         id="mainInputField" 
                         class="input-field" 
-                        placeholder="Ask anything"
+                        placeholder="Ask anything / Поставте запитання"
                         rows="1"
                         onkeydown="handleMainKeyPress(event)"
                         oninput="autoResize(this)"
@@ -344,7 +341,7 @@
             
             <div id="loading" class="loading">
                 <div class="loading-animation"></div>
-                Analyzing pharmaceutical comments...
+                Analyzing pharmaceutical comments... / Аналізуємо коментарі
             </div>
             
             <div class="input-area">
@@ -352,7 +349,7 @@
                     <textarea 
                         id="inputField" 
                         class="input-field" 
-                        placeholder="Ask anything"
+                        placeholder="Ask anything / Поставте запитання"
                         rows="1"
                         onkeydown="handleKeyPress(event)"
                         oninput="autoResize(this)"
