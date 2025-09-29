@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmaceutical Comments Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px 120px 20px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 400;
+            color: #2c2c2c;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .starter-questions {
+            width: 100%;
+            margin-bottom: 60px;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 15px;
+            color: #495057;
+            line-height: 1.4;
+        }
+
+        .question-card:hover {
+            background: #f1f3f4;
+            border-color: #dee2e6;
+        }
+
+        .question-card:active {
+            transform: translateY(1px);
+        }
+
+        .chat-container {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            min-height: 60vh;
+        }
+
+        .messages {
+            flex: 1;
+            margin-bottom: 30px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 16px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .user .message-content {
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .assistant .message-content {
+            background: #f1f3f4;
+            color: #2c2c2c;
+            border-bottom-left-radius: 6px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .loading-animation {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 50%;
+            border-top-color: #007bff;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-top: 1px solid #e9ecef;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: flex-end;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 25px;
+            padding: 8px;
+            transition: border-color 0.2s ease;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .input-container:focus-within {
+            border-color: #007bff;
+        }
+
+        .input-field {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 15px;
+            padding: 10px 16px;
+            resize: none;
+            max-height: 120px;
+            color: #2c2c2c;
+        }
+
+        .input-field::placeholder {
+            color: #6c757d;
+        }
+
+        .send-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #2c2c2c;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+            margin-left: 8px;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #1a1a1a;
+        }
+
+        .send-button:disabled {
+            background: #dee2e6;
+            cursor: not-allowed;
+        }
+
+        .send-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .mic-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid #e9ecef;
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+            margin-left: 8px;
+        }
+
+        .mic-button:hover {
+            background: #e9ecef;
+        }
+
+        .mic-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .reset-button-inline {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 13px;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 12px;
+            white-space: nowrap;
+        }
+
+        .reset-button-inline:hover {
+            background: #e9ecef;
+        }
+
+        .controls {
+            display: none;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .reset-button {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-size: 13px;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reset-button:hover {
+            background: #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .message-content {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="startScreen">
+            <div class="header">
+                <h1>Pharmaceutical analysis insights</h1>
+            </div>
+            
+            <div class="starter-questions">
+                <div class="question-card" onclick="selectQuestion('Key insights PED Enterol')">
+                    Pediatric Enterol insights analysis
+                </div>
+                <div class="question-card" onclick="selectQuestion('Probiotic market insights by countries')">
+                    Probiotic market insights by countries
+                </div>
+                <div class="question-card" onclick="selectQuestion('Probiotic market performance')">
+                    Probiotic market performance
+                </div>
+                <div class="question-card" onclick="selectQuestion('ENT specialist feedback analysis')">
+                    ENT specialist feedback analysis
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea 
+                        id="mainInputField" 
+                        class="input-field" 
+                        placeholder="Ask anything"
+                        rows="1"
+                        onkeydown="handleMainKeyPress(event)"
+                        oninput="autoResize(this)"
+                    ></textarea>
+                    <button id="mainSendButton" class="send-button" onclick="sendMainMessage()">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                    <button class="mic-button" onclick="startVoiceInput()">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/>
+                        </svg>
+                    </button>
+                    <button class="reset-button-inline" onclick="resetChat()">Reset Chat</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="chatScreen" class="chat-container">
+            <div id="messages" class="messages"></div>
+            
+            <div id="loading" class="loading">
+                <div class="loading-animation"></div>
+                Analyzing pharmaceutical comments...
+            </div>
+            
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea 
+                        id="inputField" 
+                        class="input-field" 
+                        placeholder="Ask anything"
+                        rows="1"
+                        onkeydown="handleKeyPress(event)"
+                        oninput="autoResize(this)"
+                    ></textarea>
+                    <button id="sendButton" class="send-button" onclick="sendMessage()">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="controls" class="controls">
+                <button class="reset-button" onclick="resetChat()">Reset Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const FUNCTION_URL = 'https://func-pharma-comments-analyzer-grcucrdbatcsh6ce.northeurope-01.azurewebsites.net/api/ProcessExcelFile?code=W9IcGueZhuNj782yPb6Q_ZI5P9X1LVvOVfQn5eXC8m9eAzFuMW7N1w==';
+        const EXCEL_FILE = 'Коментарі липень-вересень.xlsx';
+
+        function selectQuestion(question) {
+            // Switch to chat interface
+            switchToChatMode();
+            
+            // Add user message and analyze
+            addMessage(question, 'user');
+            analyzeComments(question);
+        }
+
+        function handleMainKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMainMessage();
+            }
+        }
+
+        function sendMainMessage() {
+            const input = document.getElementById('mainInputField');
+            const question = input.value.trim();
+            
+            if (!question) return;
+            
+            // Switch to chat mode
+            switchToChatMode();
+            
+            // Add message and analyze
+            addMessage(question, 'user');
+            input.value = '';
+            analyzeComments(question);
+        }
+
+        function switchToChatMode() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('chatScreen').style.display = 'flex';
+            document.getElementById('controls').style.display = 'flex';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function startVoiceInput() {
+            // Placeholder for voice input functionality
+            alert('Voice input feature coming soon!');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('inputField');
+            const question = input.value.trim();
+            
+            if (!question) return;
+            
+            addMessage(question, 'user');
+            input.value = '';
+            input.style.height = 'auto';
+            analyzeComments(question);
+        }
+
+        async function analyzeComments(question) {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('sendButton').disabled = true;
+            
+            try {
+                const response = await fetch(FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        blob_name: EXCEL_FILE
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    let message = result.analysis;
+                    
+                    // Add metadata if available
+                    if (result.found_records) {
+                        message = `**Analysis Results** (${result.found_records.toLocaleString()} records found)\n\n${message}`;
+                    }
+                    
+                    if (result.products_found && result.products_found.length > 0) {
+                        message = `**Products:** ${result.products_found.join(', ').toUpperCase()}\n\n` + message;
+                    }
+                    
+                    addMessage(message, 'assistant');
+                } else {
+                    addMessage(`Error: ${result.error || 'Analysis failed'}`, 'assistant');
+                }
+                
+            } catch (error) {
+                addMessage(`Connection error: Unable to analyze comments. Please try again.`, 'assistant');
+                console.error('Analysis error:', error);
+            }
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('sendButton').disabled = false;
+        }
+
+        function addMessage(content, sender) {
+            const messages = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = formatMessage(content);
+            
+            messageDiv.appendChild(contentDiv);
+            messages.appendChild(messageDiv);
+            
+            // Smooth scroll to bottom
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function formatMessage(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/^(.*)$/, '<p>$1</p>')
+                .replace(/<p><\/p>/g, '');
+        }
+
+        function resetChat() {
+            document.getElementById('startScreen').style.display = 'block';
+            document.getElementById('chatScreen').style.display = 'none';
+            document.getElementById('controls').style.display = 'none';
+            document.getElementById('messages').innerHTML = '';
+            document.getElementById('inputField').value = '';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('chatScreen').style.display = 'none';
+            document.getElementById('controls').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
